@@ -97,6 +97,10 @@ The callback will only be called once:
 
 You'll probably want to hook this function to `process.on('SIGTERM')` ;)
 
+### Other
+* use `fjq.length(function(err, count))` to get the number of jobs currently queued
+* use `fjq.clearAll(function(err))` to clear all jobs currently in Redis. Workers currenty runnign won't be affected; ideally, only use this function in your test suite and never in prod!
+
 ## Implementation notes
 * FIFO queue
 * The library uses `BLPOP` to process jobs, so you'll have one Redis connection per call to process

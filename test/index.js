@@ -30,7 +30,7 @@ describe("Featureless job queue", function() {
   describe(".create(job, cb)", function() {
     var fjq = new FJQ();
     beforeEach(function(done) {
-      client.del(fjq.options.redisKey, done);
+      fjq.clearAll(done);
     });
 
     it("should require a job", function(done) {
@@ -112,7 +112,7 @@ describe("Featureless job queue", function() {
     var fjq;
     beforeEach(function(done) {
       fjq = new FJQ();
-      client.del(fjq.options.redisKey, done);
+      fjq.clearAll(done);
     });
 
     afterEach(function(done) {
@@ -196,7 +196,7 @@ describe("Featureless job queue", function() {
     var fjq;
     beforeEach(function(done) {
       fjq = new FJQ();
-      client.del(fjq.options.redisKey, done);
+      fjq.clearAll(done);
     });
 
     afterEach(function(done) {
@@ -232,7 +232,7 @@ describe("Featureless job queue", function() {
     var fjq;
     beforeEach(function(done) {
       fjq = new FJQ();
-      client.del(fjq.options.redisKey, done);
+      fjq.clearAll(done);
     });
 
     afterEach(function(done) {
