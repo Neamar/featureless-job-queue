@@ -20,7 +20,7 @@ Once again, this does not mean other libraries do a bad job -- just a more gener
 * Your tasks are not CPU bound and you can run more than your number of CPU cores
 * You need concurrency across many servers (if you don't just use [`async.queue`](https://caolan.github.io/async/docs.html#queue))
 * You don't need priority
-* You can afford to lose a couple tasks on app critical failure (no retries, only an issue on SIGKILL and power failure)
+* You can afford to lose a couple tasks on app critical failure (SIGKILL or power failure)
 
 ## How to use this library
 ### Constructor
