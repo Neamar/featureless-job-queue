@@ -14,6 +14,7 @@ describe("Featureless job queue", function() {
       var fjq = new FJQ();
       assert.equal(fjq.options.redisUrl, "redis://localhost");
       assert.equal(fjq.options.redisKey, "fjq:jobs");
+      assert.equal(fjq.options.cargoConcurrency, 200);
     });
 
     it("should use specified redisUrl", function() {
@@ -59,6 +60,49 @@ describe("Featureless job queue", function() {
         function checkCorrect(result, cb) {
           assert.equal(result.length, 1);
           assert.equal(result[0], JSON.stringify(fakeJob));
+          cb();
+        }
+      ], done);
+    });
+
+    it("should save multiple jobs to Redis", function(done) {
+      var fakeJob = {foo: "bar"};
+      var fakeJobs = [fakeJob, fakeJob, fakeJob];
+
+      async.waterfall([
+        function createJob(cb) {
+          fjq.create(fakeJobs, cb);
+        },
+        function loadJobInRedis(cb) {
+          client.lrange(fjq.options.redisKey, 0, 10, cb);
+        },
+        function checkCorrect(result, cb) {
+          assert.equal(result.length, fakeJobs.length);
+          assert.equal(result[0], JSON.stringify(fakeJob));
+          cb();
+        }
+      ], done);
+    });
+
+    it("should save multiple jobs to Redis when jobs.length > cargoConcurrency", function(done) {
+      var fjq = new FJQ({
+        cargoConcurrency: 5
+      });
+
+      var fakeJob = {foo: "bar"};
+      var fakeJobs = [fakeJob, fakeJob, fakeJob, fakeJob, fakeJob, fakeJob];
+
+      async.waterfall([
+        function createJob(cb) {
+          fjq.create(fakeJobs, cb);
+        },
+        function loadJobInRedis(cb) {
+          client.lrange(fjq.options.redisKey, 0, 10, cb);
+        },
+        function checkCorrect(result, cb) {
+          assert.equal(result.length, fakeJobs.length);
+          assert.equal(result[0], JSON.stringify(fakeJob));
+          assert.equal(result[5], JSON.stringify(fakeJob));
           cb();
         }
       ], done);
