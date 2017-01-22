@@ -284,4 +284,36 @@ describe("Featureless job queue", function() {
       ], done);
     });
   });
+
+  describe(".clearAll(cb)", function() {
+    var fjq;
+    beforeEach(function(done) {
+      fjq = new FJQ();
+      fjq.clearAll(done);
+    });
+
+    afterEach(function(done) {
+      fjq.shutdown(done);
+    });
+
+    it("should clear all jobs", function(done) {
+      async.waterfall([
+        function createJobs(cb) {
+          fjq.create([{}, {}, {}], cb);
+        },
+        function clearAll(cb) {
+          fjq.clearAll(cb);
+        },
+        function getLength(removedKeys, cb) {
+          assert.equal(removedKeys, 1);
+          fjq.length(cb);
+        },
+        function assertLength(count, cb) {
+          assert.equal(count, 0);
+          cb();
+        },
+
+      ], done);
+    });
+  });
 });
