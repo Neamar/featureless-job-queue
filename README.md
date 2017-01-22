@@ -70,5 +70,5 @@ If you need to save multiple jobs at once, use the array function to minimize th
 
 ## Implementation notes
 * FIFO queue
-* Uses `BLPOP` to process jobs, which means at least one Redis connection will always be open
+* The library uses `BLPOP` to process jobs, so you'll have one Redis connection per call to process
 * If you never use `.create` from a worker, you won't have a second connection. From the moment you use `.create`, a new connection is established with Redis (since `BLPOP` is blocking and can't be used again) and maintained for performance.
