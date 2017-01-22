@@ -3,7 +3,7 @@ Featureless job queue
 
 Very simple job queue focusing on high performance / high throughput.
 
-There are very decent job queue for more complex use cases (TTL, job retries, priority, progress indicator). If you're interested in this kind of feature, have a look at [Kue](https://github.com/Automattic/kue).
+There are very decent job queue for more complex use cases (TTL, job retries, priority, progress indicator). If you're interested in this kind of features, have a look at [Kue](https://github.com/Automattic/kue).
 
 However, those features comes with tradeoff -- tons of calls to Redis' HSET, potential stuck jobs spoiling concurrency, and `O(log(n))` operations to pop something in a priority queue.
 
@@ -23,11 +23,23 @@ Once again, this does not mean other libraries do a bad job -- just a more gener
 * You can afford to lose a couple tasks on app critical failure (no retries, only an issue on SIGKILL and power failure)
 
 ## How to use this library
+### Constructor
+```js
+var FJQ = require('featureless-job-queue')
+var fjq = FJQ({redisUrl: redisUrl})
+```
+
+The constructor accepts two important options:
+
+* redisUrl, the URL to use for Redis. If unspecified, this will default to localhost on default port.
+* redisKey, the key to use to store the jobs. Default is `fjq:jobs`
+
+Other options are documented lower in this README, where it makes sense to introduce them.
 
 ### Process jobs
 ```js
 var FJQ = require('featureless-job-queue')
-var fjq = FJQ(redisUrl)
+var fjq = FJQ({redisUrl: redisUrl})
 
 // Number of workers to run at the same time, will default to 1
 var concurrency = 40
@@ -38,11 +50,12 @@ var workerFunction = function(job, cb) {
 fjq.process(workerFunction, concurrency)
 ```
 
+Concurrency will always be respected, but note that some jobs might be unqueued before they're sent to a worker to ensure optimal throughput. This behavior can be tweaked by specifying the key `overfillRatio` in the constructor options. This value default to 1.1 (e.g, for concurrency of 40, 40 workers will run in parallel and 4 tasks will be pre-buffered to be sent to workers).
 
 ### Queue jobs
 ```js
 var FJQ = require('featureless-job-queue')
-var fjq = FJQ(redisUrl)
+var fjq = FJQ({redisUrl: redisUrl})
 
 // job can be any valid Js structure.
 // Try to keep it as small as possible since it will transit across the network and be fulyl stored in Redis
@@ -67,6 +80,22 @@ fjq.create(job, function(err) {
 ```
 
 If you need to save multiple jobs at once, use the array function to minimize the amount of calls sent to Redis. There is no limit to the quantity of jobs that can be saved at once, the library will ensure all the data can be sent to Redis by saving the jobs chunks by chunks.
+
+Chunk size can be configured with the constructor's option `cargoConcurrency`, which default to 200.
+
+### Stop processing
+```js
+fjq.shutdown(function() {
+    console.log("All workers drained and Redis connections closed!")
+})
+```
+
+The callback will only be called once:
+
+* all workers have finished their current task (including tasks pre-buffered with `overfillRatio`). Note that this means some workers might start new jobs even after you've called `.shutdown`!
+* all opened Redis connections have been closed
+
+You'll probably want to hook this function to `process.on('SIGTERM')` ;)
 
 ## Implementation notes
 * FIFO queue
