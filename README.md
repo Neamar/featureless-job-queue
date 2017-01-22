@@ -7,9 +7,9 @@ There are very decent job queue for more complex use cases (TTL, job retries, pr
 
 However, those features comes with tradeoff -- tons of calls to Redis' HSET, potential stuck jobs spoiling concurrency, and `O(log(n))` operations to pop something in a priority queue.
 
-Moreover, those libraries need to maintain a bigger pool of connection to Redis, which can be costly since most Redis providers bills by the number of open connection.
+Moreover, those libraries need to maintain a bigger pool of connection to Redis, which can be costly since most Redis providers bills by the number of open connections.
 
-They also store data in multiple keys, which lead to an increased memory consumption.
+They also store atomic data in multiple keys, which lead to an increased memory consumption and number of calls to Redis.
 
 By only focusing on one use case, this library is much faster but also less flexible.
 Once again, this does not mean other libraries do a bad job -- just a more generic one.
@@ -18,9 +18,9 @@ Once again, this does not mean other libraries do a bad job -- just a more gener
 
 * You need to run many small jobs at once
 * Your tasks are not CPU bound and you can run more than your number of CPU cores
-* You need concurrency across many servers (if you don't just use [`async.queue`](https://caolan.github.io/async/docs.html#queue))
-* You don't need priority
-* You can afford to lose a couple tasks on app critical failure (SIGKILL or power failure)
+* You need concurrency across many servers (if you don't, just use [`async.queue`](https://caolan.github.io/async/docs.html#queue))
+* You don't need priority -- just a plain FIFO
+* You can afford to lose a couple tasks on app critical failure (SIGKILL or power failure). SIGTERM is fine.
 
 ## How to use this library
 ### Constructor

@@ -19,10 +19,10 @@ var queue = fjq.process(function(job, cb) {
     console.log("Finished job #" + job.id);
     cb();
   }, 5000);
-}, 50);
+}, 200);
 
 var jobs = [];
-for(var i = 0; i < 180; i += 1) {
+for(var i = 0; i < 650; i += 1) {
   jobs.push({id: i});
 }
 fjq.create(jobs, function() {});
