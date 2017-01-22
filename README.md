@@ -52,6 +52,8 @@ fjq.process(workerFunction, concurrency)
 
 Concurrency will always be respected, but note that some jobs might be unqueued before they're sent to a worker to ensure optimal throughput. This behavior can be tweaked by specifying the key `overfillRatio` in the constructor options. This value default to 1.1 (e.g, for concurrency of 40, 40 workers will run in parallel and 4 tasks will be pre-buffered to be sent to workers).
 
+This function will return an [`async.queue`](https://caolan.github.io/async/docs.html#queue)). You can listen for events on it, and FJQ will append jobs to the queue automatically. Theoretically, you can dynamically update the concurrency, but this is not a supported feature.
+
 ### Queue jobs
 ```js
 var FJQ = require('featureless-job-queue')
