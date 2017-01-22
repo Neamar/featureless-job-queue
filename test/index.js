@@ -1,5 +1,4 @@
 "use strict";
-
 var assert = require("assert");
 var async = require("async");
 var redis = require("redis");
@@ -146,7 +145,7 @@ describe("Featureless job queue", function() {
       var fakeJob = {foo: "bar"};
       var called = false;
       async.waterfall([
-        function process(cb) {
+        function processJob(cb) {
           fjq.process(function(job, jobCb) {
             assert.equal(job.foo, fakeJob.foo);
             called = true;
@@ -159,8 +158,9 @@ describe("Featureless job queue", function() {
           fjq.create(fakeJob, cb);
         },
         function waitForCompletion(cb) {
-          setInterval(function() {
+          var interval = setInterval(function() {
             if(called) {
+              clearInterval(interval);
               cb();
             }
           }, 5);
@@ -174,7 +174,7 @@ describe("Featureless job queue", function() {
         function addJob(cb) {
           fjq.create(fakeJob, cb);
         },
-        function process(cb) {
+        function processJob(cb) {
           fjq.process(function(job, jobCb) {
             assert.equal(job.foo, fakeJob.foo);
             jobCb();
@@ -186,6 +186,63 @@ describe("Featureless job queue", function() {
         },
         function checkCorrect(result, cb) {
           assert.equal(result.length, 0);
+          cb();
+        }
+      ], done);
+    });
+  });
+
+  describe(".shutdown(done)", function() {
+    var fjq;
+    beforeEach(function(done) {
+      fjq = new FJQ();
+      client.del(fjq.options.redisKey, done);
+    });
+
+    afterEach(function(done) {
+      fjq.shutdown(done);
+    });
+
+    it("should prevent user from creating new tasks once shut down", function(done) {
+      fjq.shutdown();
+      fjq.create({}, function(err) {
+        assert.ok(err.toString().indexOf("queue was shutdown") !== -1);
+        done();
+      });
+    });
+
+    it("should prevent user from adding new workers once shut down", function() {
+      fjq.shutdown();
+      assert.throws(function() {
+        fjq.process(function() {}, 1);
+      });
+    });
+
+    it("should only shut down once workers have finished", function(done) {
+      var fakeJob = {foo: "bar"};
+      var hasProcessed = false;
+      async.waterfall([
+        function processJob(cb) {
+          fjq.process(function(job, jobCb) {
+            setTimeout(function() {
+              hasProcessed = true;
+              jobCb();
+            }, 100);
+          }, 1);
+          cb();
+        },
+        function addJob(cb) {
+          fjq.create(fakeJob, cb);
+        },
+        function wait(cb) {
+          setTimeout(cb, 20);
+        },
+        function shutdown(cb) {
+          assert.equal(hasProcessed, false);
+          fjq.shutdown(cb);
+        },
+        function ensureHasProcessed(cb) {
+          assert.equal(hasProcessed, true);
           cb();
         }
       ], done);
