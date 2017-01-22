@@ -1,0 +1,15 @@
+machine:
+  node:
+    version: 6.3.1
+test:
+  pre:
+    - npm run-script lint
+    - npm run-script style
+  override:
+    - npm run coverage:
+        environment:
+          MOCHA_FILE: $CIRCLE_TEST_REPORTS/junit/test-results.xml
+          MOCHA_REPORTER: mocha-junit-reporter
+general:
+  artifacts:
+    - ./coverage

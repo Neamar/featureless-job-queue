@@ -1,0 +1,41 @@
+{
+  "name": "featureless-job-queue",
+  "version": "1.0.0",
+  "description": "Very basic job queue focusing on performance for high throughput",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha --recursive -t 5000 test/ --reporter ${MOCHA_REPORTER:-spec}",
+    "coverage": "NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha --  --recursive -t 5000 test/ --reporter ${MOCHA_REPORTER:-spec}",
+    "lint": "jshint lib/ test/",
+    "style": "jscs ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Neamar/featureless-job-queue.git"
+  },
+  "author": "Neamar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Neamar/featureless-job-queue/issues"
+  },
+  "homepage": "https://github.com/Neamar/featureless-job-queue#readme",
+  "dependencies": {
+    "async": "^2.1.2",
+    "auto-load": "^2.1.0",
+    "debug": "^2.2.0",
+    "rarity": "^2.1.1"
+  },
+  "devDependencies": {
+    "istanbul": "^0.4.5",
+    "jscs": "^3.0.7",
+    "jshint": "^2.9.1",
+    "mocha": "^3.1.2",
+    "mocha-junit-reporter": "^1.12.1",
+    "nock": "^7.2.2",
+    "sinon": "^1.17.4",
+    "supertest": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  }
+}
