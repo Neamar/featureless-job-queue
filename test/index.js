@@ -108,4 +108,87 @@ describe("Featureless job queue", function() {
       ], done);
     });
   });
+
+  describe(".process(concurrency, queueWorker)", function() {
+    var fjq;
+    beforeEach(function(done) {
+      fjq = new FJQ();
+      client.del(fjq.options.redisKey, done);
+    });
+
+    afterEach(function(done) {
+      fjq.shutdown(done);
+    });
+
+    it("should require a function", function() {
+      assert.throws(function() {
+        fjq.process(true);
+      });
+    });
+
+    it("should work on already created tasks", function(done) {
+      var fakeJob = {foo: "bar"};
+      async.waterfall([
+        function addJob(cb) {
+          fjq.create(fakeJob, cb);
+        },
+        function process(cb) {
+          fjq.process(function(job, jobCb) {
+            assert.equal(job.foo, fakeJob.foo);
+            jobCb();
+            cb();
+          }, 1);
+        }
+      ], done);
+    });
+
+    it("should start working on tasks queued after .process()", function(done) {
+      var fakeJob = {foo: "bar"};
+      var called = false;
+      async.waterfall([
+        function process(cb) {
+          fjq.process(function(job, jobCb) {
+            assert.equal(job.foo, fakeJob.foo);
+            called = true;
+            jobCb();
+          }, 1);
+
+          cb();
+        },
+        function addJob(cb) {
+          fjq.create(fakeJob, cb);
+        },
+        function waitForCompletion(cb) {
+          setInterval(function() {
+            if(called) {
+              cb();
+            }
+          }, 5);
+        }
+      ], done);
+    });
+
+    it("should remove tasks once finished", function(done) {
+      var fakeJob = {foo: "bar"};
+      async.waterfall([
+        function addJob(cb) {
+          fjq.create(fakeJob, cb);
+        },
+        function process(cb) {
+          fjq.process(function(job, jobCb) {
+            assert.equal(job.foo, fakeJob.foo);
+            jobCb();
+            cb();
+          }, 1);
+        },
+        function loadJobInRedis(cb) {
+          client.lrange(fjq.options.redisKey, 0, 10, cb);
+        },
+        function checkCorrect(result, cb) {
+          assert.equal(result.length, 0);
+          cb();
+        }
+      ], done);
+    });
+  });
 });

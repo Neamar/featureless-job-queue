@@ -29,13 +29,13 @@ Once again, this does not mean other libraries do a bad job -- just a more gener
 var FJQ = require('featureless-job-queue')
 var fjq = FJQ(redisUrl)
 
-// Number of workers to run at the same time
+// Number of workers to run at the same time, will default to 1
 var concurrency = 40
 var workerFunction = function(job, cb) {
     // your function, call cb(err) once done.    
 }
 
-fjq.process(concurrency, workerFunction)
+fjq.process(workerFunction, concurrency)
 ```
 
 
