@@ -192,6 +192,42 @@ describe("Featureless job queue", function() {
     });
   });
 
+  describe(".length(cb)", function() {
+    var fjq;
+    beforeEach(function(done) {
+      fjq = new FJQ();
+      client.del(fjq.options.redisKey, done);
+    });
+
+    afterEach(function(done) {
+      fjq.shutdown(done);
+    });
+
+    it("should return 0 by default", function(done) {
+      fjq.length(function(err, count) {
+        assert.ifError(err);
+        assert.equal(count, 0);
+        done();
+      });
+    });
+
+    it("should return length of jobs", function(done) {
+      async.waterfall([
+        function createJobs(cb) {
+          fjq.create([{}, {}, {}], cb);
+        },
+        function getLength(cb) {
+          fjq.length(cb);
+        },
+        function assertLength(count, cb) {
+          assert.equal(count, 3);
+          cb();
+        }
+      ], done);
+
+    });
+  });
+
   describe(".shutdown(done)", function() {
     var fjq;
     beforeEach(function(done) {
