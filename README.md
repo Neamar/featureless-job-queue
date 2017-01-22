@@ -107,3 +107,4 @@ You'll probably want to hook this function to `process.on('SIGTERM')` ;)
 * FIFO queue
 * The library uses `BLPOP` to process jobs, so you'll have one Redis connection per call to process
 * If you never use `.create` from a worker, you won't have a second connection. From the moment you use `.create`, a new connection is established with Redis (since `BLPOP` is blocking and can't be used again) and maintained for performance.
+* See https://github.com/Neamar/featureless-job-queue/issues/1 for a detailed breakdown of the performance improvement you can expect when switching from Kue to featureless-job-queue.
