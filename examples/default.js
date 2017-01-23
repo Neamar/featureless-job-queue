@@ -12,16 +12,11 @@ var fjq = new FJQ();
 
 
 // Define the worker function to use, and the concurrency
-fjq.process(function workerFunction(job, cb) {
+var queue = fjq.process(function workerFunction(job, cb) {
   setTimeout(function() {
     console.log("Finished job #" + job.id);
 
     cb();
-
-    // Shutdown on last task, you'll probably never do that in a real use case but this ensure this example finishes!
-    if(job.id === JOB_COUNT) {
-      fjq.shutdown();
-    }
   }, 50);
 }, CONCURRENCY);
 
@@ -31,7 +26,15 @@ var jobs = [];
 for(var i = 1; i <= JOB_COUNT; i += 1) {
   jobs.push({id: i});
 }
+
 // And add them to the queue
 fjq.create(jobs, function(err) {
   console.log(err || "Added jobs in the queue");
 });
+
+
+// Only for this example: shutdown the process once all tasks have completed.
+// In a real life situation you'd want to keep your worker running in case some tasks were to appear in the queue.
+queue.drain = function() {
+  fjq.shutdown();
+};

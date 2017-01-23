@@ -15,6 +15,7 @@ test:
   post:
     - node examples/default.js
     - node examples/high-concurrency.js
+    - node examples/multiple-queues.js
     - node examples/shutdown.js
 general:
   artifacts:

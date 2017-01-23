@@ -31,6 +31,9 @@ var jobs = [];
 for(var i = 0; i < 90; i += 1) {
   jobs.push({id: i});
 }
+jobs[jobs.length - 1].shutdown = true;
+
+
 // And add them to the queue
 fjq.create(jobs, function(err) {
   console.log(err || "Added jobs in the queue");
