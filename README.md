@@ -31,8 +31,8 @@ var fjq = FJQ({redisUrl: redisUrl})
 
 The constructor accepts two important options:
 
-* redisUrl, the URL to use for Redis. If unspecified, this will default to localhost on default port.
-* redisKey, the key to use to store the jobs. Default is `fjq:jobs`
+* `redisUrl`, the URL to use for Redis. If unspecified, this will default to localhost on default port.
+* `redisKey`, the key to use to store the jobs. Default is `fjq:jobs`
 
 Other options are documented lower in this README, where it makes sense to introduce them.
 
