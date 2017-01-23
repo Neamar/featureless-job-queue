@@ -25,7 +25,7 @@ var queueA = fjqTaskA.process(function workerFunctionA(job, cb) {
 }, CONCURRENCY_TASK_A);
 
 
-var queueB = fjqTaskB.process(function workerFunctionBB(job, cb) {
+var queueB = fjqTaskB.process(function workerFunctionB(job, cb) {
   setTimeout(function() {
     console.log("Finished job from task B #" + job.id);
     cb();
@@ -41,10 +41,10 @@ for(var i = 1; i <= JOB_COUNT; i += 1) {
 
 // And add them to the queues
 fjqTaskA.create(jobs, function(err) {
-  console.log(err || "Added jobs in the queue");
+  console.log(err || "Added jobs in queue A");
 });
 fjqTaskB.create(jobs, function(err) {
-  console.log(err || "Added jobs in the queue");
+  console.log(err || "Added jobs in queue B");
 });
 
 
