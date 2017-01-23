@@ -3,6 +3,9 @@ Featureless job queue
 
 Very simple job queue focusing on high performance / high throughput.
 
+Basically, just a distributed FIFO.
+
+## Why use this library?
 There are very decent job queue for more complex use cases (TTL, job retries, priority, progress indicator). If you're interested in this kind of features, have a look at [Kue](https://github.com/Automattic/kue).
 
 However, those features comes with tradeoff -- tons of calls to Redis' HSET, potential stuck jobs spoiling concurrency, and `O(log(n))` operations to pop something in a priority queue.
@@ -23,6 +26,8 @@ Once again, this does not mean other libraries do a bad job -- just a more gener
 * You can afford to lose a couple tasks on app critical failure (SIGKILL or power failure). SIGTERM is fine.
 
 ## How to use this library
+Have a look at the [examples folder](https://github.com/Neamar/featureless-job-queue/tree/master/examples)!
+
 ### Constructor
 ```js
 var FJQ = require('featureless-job-queue')
