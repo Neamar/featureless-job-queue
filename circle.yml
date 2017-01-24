@@ -17,6 +17,7 @@ test:
     - node examples/high-concurrency.js
     - node examples/multiple-queues.js
     - node examples/pause.js
+    - node examples/retries.js
     - node examples/shutdown.js
 general:
   artifacts:
