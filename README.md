@@ -31,7 +31,7 @@ Have a look at the [examples folder](https://github.com/Neamar/featureless-job-q
 ### Constructor
 ```js
 var FJQ = require('featureless-job-queue')
-var fjq = FJQ({redisUrl: redisUrl})
+var fjq = new FJQ({redisUrl: redisUrl})
 ```
 
 The constructor accepts two important options:
@@ -44,7 +44,7 @@ Other options are documented lower in this README, where it makes sense to intro
 ### Process jobs
 ```js
 var FJQ = require('featureless-job-queue')
-var fjq = FJQ({redisUrl: redisUrl})
+var fjq = new FJQ({redisUrl: redisUrl})
 
 // Number of workers to run at the same time, will default to 1
 var concurrency = 40
@@ -62,7 +62,7 @@ This function will return an [`async.queue`](https://caolan.github.io/async/docs
 ### Queue jobs
 ```js
 var FJQ = require('featureless-job-queue')
-var fjq = FJQ({redisUrl: redisUrl})
+var fjq = new FJQ({redisUrl: redisUrl})
 
 // job can be any valid Js structure.
 // Try to keep it as small as possible since it will transit across the network and be fulyl stored in Redis
