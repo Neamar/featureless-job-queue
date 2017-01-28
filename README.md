@@ -10,12 +10,11 @@ There are very decent job queue for more complex use cases (TTL, job retries, pr
 
 However, those features comes with tradeoff -- tons of calls to Redis' HSET, potential stuck jobs spoiling concurrency, and `O(log(n))` operations to pop something in a priority queue.
 
-Moreover, those libraries need to maintain a bigger pool of connection to Redis, which can be costly since most Redis providers bills by the number of open connections.
+Moreover, those libraries need to maintain a bigger pool of connection to Redis, which can be costly on Redis providers billing by the number of open connections.
 
 They also store atomic data in multiple keys, which lead to an increased memory consumption and number of calls to Redis.
 
-By only focusing on one use case, this library is much faster but also less flexible.
-Once again, this does not mean other libraries do a bad job -- just a more generic one.
+By only focusing on one use case, this library is much faster but also less flexible. See [this page](https://github.com/Neamar/featureless-job-queue/issues/1) for a performance comparison between kue and this library.
 
 ## When should I use this library?
 
@@ -26,7 +25,7 @@ Once again, this does not mean other libraries do a bad job -- just a more gener
 * You can afford to lose a couple tasks on app critical failure (SIGKILL or power failure). SIGTERM is fine.
 
 ## How to use this library
-Have a look at the [examples folder](https://github.com/Neamar/featureless-job-queue/tree/master/examples)!
+> Too lazy to read doc? Have a look at the [examples folder](https://github.com/Neamar/featureless-job-queue/tree/master/examples)!
 
 ### Constructor
 ```js
@@ -37,7 +36,7 @@ var fjq = FJQ({redisUrl: redisUrl})
 The constructor accepts two important options:
 
 * `redisUrl`, the URL to use for Redis. If unspecified, this will default to localhost on default port.
-* `redisKey`, the key to use to store the jobs. Default is `fjq:jobs`
+* `redisKey`, the redis key to use to store the jobs. Default is `fjq:jobs`, change it if you need to run multiple job queues on the same redis instance.
 
 Other options are documented lower in this README, where it makes sense to introduce them.
 
@@ -55,17 +54,17 @@ var workerFunction = function(job, cb) {
 fjq.process(workerFunction, concurrency)
 ```
 
-Concurrency will always be respected, but note that some jobs might be unqueued before they're sent to a worker to ensure optimal throughput. This behavior can be tweaked by specifying the key `overfillRatio` in the constructor options. This value default to 1.1 (e.g, for concurrency of 40, 40 workers will run in parallel and 4 tasks will be pre-buffered to be sent to workers).
+Concurrency will always be respected, but note that some jobs might be unqueued before they're sent to a worker to ensure optimal throughput. This behavior can be tweaked by specifying the key `overfillRatio` in the constructor options. This value defaults to 1.1 (e.g, for concurrency of 40, 40 workers will run in parallel and 4 tasks will be pre-buffered to be sent to workers).
 
-This function will return an [`async.queue`](https://caolan.github.io/async/docs.html#queue)). You can listen for events on it, and FJQ will append jobs to the queue automatically. Theoretically, you can dynamically update the concurrency, but this is not a supported feature.
+This function will return an [`async.queue`](https://caolan.github.io/async/docs.html#queue). You can listen for events on it, and FJQ will append jobs to the queue automatically. Updating the queue concurrency in real time is not supported.
 
 ### Queue jobs
 ```js
 var FJQ = require('featureless-job-queue')
 var fjq = FJQ({redisUrl: redisUrl})
 
-// job can be any valid Js structure.
-// Try to keep it as small as possible since it will transit across the network and be fulyl stored in Redis
+// job can be any valid JS structure.
+// Try to keep it as small as possible since it will transit across the network and be fully stored in Redis
 // It will be serialized using JSON.serialize, so you can't use any fancy items in your job (e.g. functions)
 var job = {
     type: "something",
@@ -86,9 +85,9 @@ fjq.create(job, function(err) {
 })
 ```
 
-If you need to save multiple jobs at once, use the array function to minimize the amount of calls sent to Redis. There is no limit to the quantity of jobs that can be saved at once, the library will ensure all the data can be sent to Redis by saving the jobs chunks by chunks.
+If you need to save multiple jobs at once, use the array version of the function to minimize the amount of calls sent to Redis. There is no limit to the quantity of jobs that can be saved at once, the library will ensure all the data can be sent to Redis by saving the jobs chunks by chunks.
 
-Chunk size can be configured with the constructor's option `cargoConcurrency`, which default to 200.
+Chunk size can be configured with the constructor option `cargoConcurrency`, which default to 200.
 
 ### Stop processing
 ```js
@@ -97,19 +96,20 @@ fjq.shutdown(function() {
 })
 ```
 
-The callback will only be called once:
+The callback will only be called once all of this is true:
 
-* all workers have finished their current task (including tasks pre-buffered with `overfillRatio`). Note that this means some workers might start new jobs even after you've called `.shutdown`!
+* all workers have finished their current task (including tasks pre-buffered with `overfillRatio`). *Note that this means some workers might start new jobs even after you've called `.shutdown`!*
 * all opened Redis connections have been closed
 
 You'll probably want to hook this function to `process.on('SIGTERM')` ;)
 
 ### Other
-* use `fjq.length(function(err, count))` to get the number of jobs currently queued
-* use `fjq.clearAll(function(err))` to clear all jobs currently in Redis. Workers currenty runnign won't be affected; ideally, only use this function in your test suite and never in prod!
+* use `fjq.length(function(err, count))` to get the number of jobs currently queued in Redis (doesn't include tasks currently worked on and pre-buffered tasks)
+* use `fjq.clearAll(function(err))` to clear all jobs currently in Redis. Workers currenty running won't be affected; ideally, only use this function in your test suite and never in prod!
+* if you need access to a Redis connection, use `fjq.getCommandConnection()` which returns a [redis client](https://www.npmjs.com/package/redis).
 
 ## Implementation notes
 * FIFO queue
-* The library uses `BLPOP` to process jobs, so you'll have one Redis connection per call to process
+* The library uses `BLPOP` to process jobs, so you'll have one Redis connection per call to `.process`
 * If you never use `.create` from a worker, you won't have a second connection. From the moment you use `.create`, a new connection is established with Redis (since `BLPOP` is blocking and can't be used again) and maintained for performance.
 * See https://github.com/Neamar/featureless-job-queue/issues/1 for a detailed breakdown of the performance improvement you can expect when switching from Kue to featureless-job-queue.
