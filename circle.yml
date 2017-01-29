@@ -14,7 +14,7 @@ test:
           MOCHA_REPORTER: mocha-junit-reporter
   post:
     - node examples/default.js
-    - node examples/high-concurrency.js
+    - node examples/monitoring.js
     - node examples/multiple-queues.js
     - node examples/pause.js
     - node examples/retries.js

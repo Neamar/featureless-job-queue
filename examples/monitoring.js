@@ -1,6 +1,8 @@
 "use strict";
 /**
- * This example demonstrate the use of the library for a "high-concurrency" use-case:
+ * This example displays the use of a watchdog to monitor concurrency.
+ *
+ * This example also demonstrate the use of the library for a "high-concurrency" use-case:
  * 25 tasks are run in parallel, each task taking 1500ms.
  * Note that such a concurrency is only relevant for non-CPU bounds tasks,
  * e.g. network requests are a good use of such a feature since you're spending most of your time
@@ -9,7 +11,6 @@
  * A concurrency of 200 might make sense for HTTP requests if you have a decent network adapter.
  * In any case, this library won't be an issue even if your concurrency goes over a couple millions / sec (tested and approved)
  *
- * In addition, this example also display the use of a watchdog to monitor concurrency.
  */
 const CONCURRENCY = 25;
 
@@ -47,7 +48,7 @@ setInterval(function() {
       throw err;
     }
 
-    console.log("Tasks running: " + queue.workersList().length + ", in local queue: " + queue.length() + ", in Redis queue: " + length);
+    console.log("Tasks running: " + queue.running() + ", in local queue: " + queue.length() + ", in Redis queue: " + length);
 
     if(length === 0 && queue.workersList().length === 0) {
       process.exit();
