@@ -6,9 +6,9 @@ Very simple job queue focusing on high performance / high throughput.
 Basically, just a distributed FIFO.
 
 ## Why use this library?
-There are very decent job queue for more complex use cases (TTL, job retries, priority, progress indicator). If you're interested in this kind of features, have a look at [Kue](https://github.com/Automattic/kue).
+There are very decent job queues for more complex use cases (TTL, job retries, priority, progress indicator). If you're interested in this kind of features, have a look at [Kue](https://github.com/Automattic/kue).
 
-However, those features comes with tradeoff -- tons of calls to Redis' HSET, potential stuck jobs spoiling concurrency, and `O(log(n))` operations to pop something in a priority queue.
+However, those features come with a tradeoff -- tons of calls to Redis' HSET, potential stuck jobs spoiling concurrency, and `O(log(n))` operations to pop something in a priority queue.
 
 Moreover, those libraries need to maintain a bigger pool of connection to Redis, which can be costly on Redis providers billing by the number of open connections.
 
@@ -22,7 +22,7 @@ By only focusing on one use case, this library is much faster but also less flex
 * Your tasks are not CPU bound and you can run more than your number of CPU cores
 * You need concurrency across many servers (if you don't, just use [`async.queue`](https://caolan.github.io/async/docs.html#queue))
 * You don't need priority -- just a plain FIFO
-* You can afford to lose a couple tasks on app critical failure (SIGKILL or power failure). SIGTERM is fine.
+* You can afford to lose a couple of tasks on critical app failure (SIGKILL or power failure). SIGTERM is fine.
 
 ## How to use this library
 > Too lazy to read doc? Have a look at the [examples folder](https://github.com/Neamar/featureless-job-queue/tree/master/examples)!
@@ -35,8 +35,8 @@ var fjq = new FJQ({redisUrl: redisUrl})
 
 The constructor accepts two important options:
 
-* `redisUrl`, the URL to use for Redis. If unspecified, this will default to localhost on default port.
-* `redisKey`, the redis key to use to store the jobs. Default is `fjq:jobs`, change it if you need to run multiple job queues on the same redis instance.
+* `redisUrl`, the URL to use for Redis. If unspecified, this will default to localhost on the default port.
+* `redisKey`, the redis key to use to store the jobs. Default is `fjq:jobs`, change it if you need to run multiple job queues on the same Redis instance.
 
 Other options are documented lower in this README, where it makes sense to introduce them.
 
@@ -54,9 +54,9 @@ var workerFunction = function(job, cb) {
 fjq.process(workerFunction, concurrency)
 ```
 
-Concurrency will always be respected, but note that some jobs might be unqueued before they're sent to a worker to ensure optimal throughput. This behavior can be tweaked by specifying the key `overfillRatio` in the constructor options. This value defaults to 1.1 (e.g, for concurrency of 40, 40 workers will run in parallel and 4 tasks will be pre-buffered to be sent to workers).
+Concurrency will always be respected, but note that some jobs might be unqueued before they're sent to a worker to ensure optimal throughput. This behavior can be tweaked by specifying the key `overfillRatio` in the constructor options. This value defaults to 1.1 (e.g., for concurrency of 40, 40 workers will run in parallel, and 4 tasks will be pre-buffered to be sent to workers).
 
-This function will return an [`async.queue`](https://caolan.github.io/async/docs.html#queue). You can listen for events on it, and FJQ will append jobs to the queue automatically. Updating the queue concurrency in real time is not supported.
+This function will return an [`async.queue`](https://caolan.github.io/async/docs.html#queue). You can listen to events on it, and FJQ will append jobs to the queue automatically. Updating the queue concurrency in real time is not supported.
 
 ### Queue jobs
 ```js
@@ -71,28 +71,27 @@ var job = {
     foo: "bar"
 }
 
-fjq.create(job, function(err) {
+fjq.create(job, function(err, count) {
     if(err) return console.warn(err)
     // Job successfully created
+    // `count` is the number of items currently in the queue (after saving this job)
 })
 
 // OR
 var jobs = [{job1: true}, {job2: true}, ...]
-fjq.create(job, function(err) {
+fjq.create(job, function(err, count) {
     // Please note: if you get an error, some jobs may have been saved and others not :(
     if(err) return console.warn(err)
     // Jobs successfully created
 })
 ```
 
-If you need to save multiple jobs at once, use the array version of the function to minimize the amount of calls sent to Redis. There is no limit to the quantity of jobs that can be saved at once, the library will ensure all the data can be sent to Redis by saving the jobs chunks by chunks.
-
-Chunk size can be configured with the constructor option `cargoConcurrency`, which default to 200.
+If you need to save multiple jobs at once, use the array version of the function to minimize the number of calls sent to Redis. There is no limit to the number of jobs that can be saved at once.
 
 ### Stop processing
 ```js
 fjq.shutdown(function() {
-    console.log("All workers drained and Redis connections closed!")
+    console.log("All workers drained, Redis connections closed!")
 })
 ```
 

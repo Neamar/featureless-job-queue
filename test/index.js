@@ -13,7 +13,6 @@ describe("Featureless job queue", function() {
       var fjq = new FJQ();
       assert.equal(fjq.options.redisUrl, "redis://localhost");
       assert.equal(fjq.options.redisKey, "fjq:jobs");
-      assert.equal(fjq.options.cargoConcurrency, 200);
     });
 
     it("should use specified redisUrl", function() {
@@ -53,7 +52,7 @@ describe("Featureless job queue", function() {
         function createJob(cb) {
           fjq.create(fakeJob, cb);
         },
-        function loadJobInRedis(cb) {
+        function loadJobInRedis(count, cb) {
           client.lrange(fjq.options.redisKey, 0, 10, cb);
         },
         function checkCorrect(result, cb) {
@@ -72,36 +71,12 @@ describe("Featureless job queue", function() {
         function createJob(cb) {
           fjq.create(fakeJobs, cb);
         },
-        function loadJobInRedis(cb) {
+        function loadJobInRedis(count, cb) {
           client.lrange(fjq.options.redisKey, 0, 10, cb);
         },
         function checkCorrect(result, cb) {
           assert.equal(result.length, fakeJobs.length);
           assert.equal(result[0], JSON.stringify(fakeJob));
-          cb();
-        }
-      ], done);
-    });
-
-    it("should save multiple jobs to Redis when jobs.length > cargoConcurrency", function(done) {
-      var fjq = new FJQ({
-        cargoConcurrency: 5
-      });
-
-      var fakeJob = {foo: "bar"};
-      var fakeJobs = [fakeJob, fakeJob, fakeJob, fakeJob, fakeJob, fakeJob];
-
-      async.waterfall([
-        function createJob(cb) {
-          fjq.create(fakeJobs, cb);
-        },
-        function loadJobInRedis(cb) {
-          client.lrange(fjq.options.redisKey, 0, 10, cb);
-        },
-        function checkCorrect(result, cb) {
-          assert.equal(result.length, fakeJobs.length);
-          assert.equal(result[0], JSON.stringify(fakeJob));
-          assert.equal(result[5], JSON.stringify(fakeJob));
           cb();
         }
       ], done);
@@ -131,7 +106,7 @@ describe("Featureless job queue", function() {
         function addJob(cb) {
           fjq.create(fakeJob, cb);
         },
-        function process(cb) {
+        function process(count, cb) {
           fjq.process(function(job, jobCb) {
             assert.equal(job.foo, fakeJob.foo);
             jobCb();
@@ -157,7 +132,7 @@ describe("Featureless job queue", function() {
         function addJob(cb) {
           fjq.create(fakeJob, cb);
         },
-        function waitForCompletion(cb) {
+        function waitForCompletion(count, cb) {
           var interval = setInterval(function() {
             if(called) {
               clearInterval(interval);
@@ -174,7 +149,7 @@ describe("Featureless job queue", function() {
         function addJob(cb) {
           fjq.create(fakeJob, cb);
         },
-        function processJob(cb) {
+        function processJob(count, cb) {
           fjq.process(function(job, jobCb) {
             assert.equal(job.foo, fakeJob.foo);
             jobCb();
@@ -216,7 +191,7 @@ describe("Featureless job queue", function() {
         function createJobs(cb) {
           fjq.create([{}, {}, {}], cb);
         },
-        function getLength(cb) {
+        function getLength(count, cb) {
           fjq.length(cb);
         },
         function assertLength(count, cb) {
@@ -270,7 +245,7 @@ describe("Featureless job queue", function() {
         function addJob(cb) {
           fjq.create(fakeJob, cb);
         },
-        function wait(cb) {
+        function wait(count, cb) {
           setTimeout(cb, 20);
         },
         function shutdown(cb) {
@@ -301,7 +276,7 @@ describe("Featureless job queue", function() {
         function createJobs(cb) {
           fjq.create([{}, {}, {}], cb);
         },
-        function clearAll(cb) {
+        function clearAll(count, cb) {
           fjq.clearAll(cb);
         },
         function getLength(removedKeys, cb) {
