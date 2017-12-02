@@ -1,6 +1,6 @@
 {
   "name": "featureless-job-queue",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Very basic job queue focusing on performance for high throughput",
   "main": "lib/index.js",
   "scripts": {
