@@ -28,8 +28,8 @@ for(var i = 1; i <= JOB_COUNT; i += 1) {
 }
 
 // And add them to the queue
-fjq.create(jobs, function(err) {
-  console.log(err || "Added jobs in the queue");
+fjq.create(jobs, function(err, count) {
+  console.log(err || "Added jobs in the queue, number of tasks: " + count);
 });
 
 
