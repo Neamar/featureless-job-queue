@@ -1,0 +1,46 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.8
+      - image: redis:3.2.1
+    working_directory: ~/repo
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      - run: npm run-script lint
+      - run: npm run-script style
+      - run: npm test
+      # Run tests again in junit format, and with coverage information
+      - run:
+          name: Coverage & junit
+          command: npm run coverage
+          environment:
+            MOCHA_REPORTER: mocha-junit-reporter
+            MOCHA_FILE: /tmp/junit-test-results.xml
+      - store_artifacts:
+          path: ./coverage
+          destination: coverage
+      - store_test_results:
+          path: /tmp/junit-test-results.xml
+      - run:
+        name: Documentation code
+        command: |
+          node examples/default.js
+          node examples/monitoring.js
+          node examples/multiple-queues.js
+          node examples/pause.js
+          node examples/retries.js
+          node examples/shutdown.js
