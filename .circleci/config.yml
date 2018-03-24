@@ -24,14 +24,14 @@ jobs:
       - run: npm run-script style
       - run: npm test
       - run:
-        name: Documentation code
-        command: |
-          node examples/default.js
-          node examples/monitoring.js
-          node examples/multiple-queues.js
-          node examples/pause.js
-          node examples/retries.js
-          node examples/shutdown.js
+          name: Documentation code
+          command: |
+            node examples/default.js
+            node examples/monitoring.js
+            node examples/multiple-queues.js
+            node examples/pause.js
+            node examples/retries.js
+            node examples/shutdown.js
       # Run tests again in junit format, and with coverage information
       - run:
           name: Coverage & junit
