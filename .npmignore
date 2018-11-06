@@ -1,0 +1,5 @@
+.circleci/
+examples/
+test/
+.jscsrc
+.jshintrc
